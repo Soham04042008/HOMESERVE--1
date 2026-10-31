@@ -1,0 +1,30 @@
+﻿# Dependencies
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/target/
+**/build/
+
+# Environment secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Backups
+**/*backup*/
+**/_backup*/
+**/.homeserve-backup*/
+
+# IDE and OS files
+**/.idea/
+**/.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Backup files
+**/*backup*

@@ -1,0 +1,7 @@
+HomeServe merge-ready frontend files
+
+Extract this ZIP into the parent folder that contains your existing HomeServe-main folder. The archive keeps the top-level folder name HomeServe-main and adds the Bolt bookings, professional search, messaging, and worker feature modules. It includes package.json as a duplicate path so Windows can show a replace prompt; the package file content matches the existing HomeServe-main configuration.
+
+IMPORTANT: Existing App.tsx, AuthPage.tsx, index.css, auth.css, and the existing Supabase client are intentionally not overwritten. New feature modules are staged but are NOT yet wired into App.tsx, and their data hooks still use Supabase. They will not be fully active or backed by Java/MySQL until a follow-up integration updates routing and replaces Supabase calls with Java REST APIs. SQL files under docs are reference only and must not be executed as-is against MySQL.
+
+After merging, run npm install if needed, then npm run dev. Keep a backup of your current folder before extraction.
