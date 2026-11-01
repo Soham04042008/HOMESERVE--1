@@ -289,7 +289,7 @@ export function useWorker(userId: string | undefined, email: string | undefined,
       } catch { /* Keep the last successful bookings during a temporary network issue. */ }
       finally { inFlight = false; }
     };
-    const timer = window.setInterval(() => { void refreshBookings(); }, 15000);
+    const timer = window.setInterval(() => { void refreshBookings(); }, 4000);
     const onVisible = () => { if (document.visibilityState === 'visible') void refreshBookings(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { active = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
@@ -325,7 +325,7 @@ export function useWorker(userId: string | undefined, email: string | undefined,
       } catch { /* Keep last successful reviews when background polling fails. */ }
       finally { inFlight = false; }
     };
-    const timer = window.setInterval(() => { void refreshReviews(); }, 30000);
+    const timer = window.setInterval(() => { void refreshReviews(); }, 4000);
     const onVisible = () => { if (document.visibilityState === 'visible') void refreshReviews(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { active = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };

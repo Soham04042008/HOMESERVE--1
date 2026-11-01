@@ -75,25 +75,13 @@ public class ReviewController {
     }
 
     public Map<String,Object> reviewMap(BookingReview r){
-        // Review rows already store customerName and serviceName. Only perform
-        // fallback lookups for legacy rows where those denormalized values are absent.
-        String customerName = r.getCustomerName();
-        if (customerName == null || customerName.isBlank()) {
-            AppUser customer = users.findById(r.getCustomerId()).orElse(null);
-            customerName = customer == null || customer.getFullName() == null ? "Customer" : customer.getFullName();
-        }
-        String serviceName = r.getServiceName();
-        if (serviceName == null || serviceName.isBlank()) {
-            Booking booking = bookings.findById(r.getBookingId()).orElse(null);
-            serviceName = booking == null || booking.getService() == null || booking.getService().getName() == null
-                    ? "Home service" : booking.getService().getName();
-        }
+        Booking b=bookings.findById(r.getBookingId()).orElse(null); AppUser customer=users.findById(r.getCustomerId()).orElse(null);
         Map<String,Object> m=new LinkedHashMap<>();
         m.put("id",r.getId()); m.put("bookingId",r.getBookingId()); m.put("workerId",r.getWorkerId());
         m.put("customerId",r.getCustomerId());
-        m.put("customerName",customerName);
+        m.put("customerName",r.getCustomerName()!=null&&!r.getCustomerName().isBlank()?r.getCustomerName():(customer==null?"Customer":customer.getFullName()));
         m.put("rating",r.getRating()); m.put("comment",r.getComment());
-        m.put("serviceName",serviceName);
+        m.put("serviceName",r.getServiceName()!=null&&!r.getServiceName().isBlank()?r.getServiceName():(b==null||b.getService()==null?"Home service":b.getService().getName()));
         m.put("createdAt",r.getCreatedAt());
         return m;
     }
