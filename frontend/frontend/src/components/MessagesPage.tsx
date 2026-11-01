@@ -103,7 +103,7 @@ export default function MessagesPage({ userId, onOpenBooking, initialConversatio
       void markRead(selectedId);
       setShowChatMobile(true);
     })();
-    const timer = window.setInterval(() => { void refreshMessages(); }, 4000);
+    const timer = window.setInterval(() => { void refreshMessages(); }, 8000);
     const onVisible = () => { if (document.visibilityState === 'visible') void refreshMessages(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { active = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };

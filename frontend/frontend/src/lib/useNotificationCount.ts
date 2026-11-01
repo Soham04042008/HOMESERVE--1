@@ -42,7 +42,7 @@ export function useNotificationCount() {
     };
 
     void load();
-    const timer = window.setInterval(() => void load(), 4000);
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 20000);
     const onFocus = () => void load();
     window.addEventListener('focus', onFocus);
     return () => {

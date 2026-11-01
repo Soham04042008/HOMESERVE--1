@@ -17,7 +17,7 @@ export default function NotificationsPage({ onOpenBooking, onOpenMessages }: Pro
     catch (e) { if (!silent) setError(e instanceof Error ? e.message : 'Could not load notifications.'); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(true); }, 4000); const onFocus = () => void load(true); window.addEventListener('focus', onFocus); return () => { window.clearInterval(timer); window.removeEventListener('focus', onFocus); }; }, [load]);
+  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(true); }, 20000); const onFocus = () => void load(true); window.addEventListener('focus', onFocus); return () => { window.clearInterval(timer); window.removeEventListener('focus', onFocus); }; }, [load]);
   const unread = serverUnreadCount;
   const visible = useMemo(() => items.filter(n => filter === 'all' || !n.read), [items, filter]);
   const markRead = async (id: number) => { const token = authToken(); try { const r = await fetch(`${API}/api/notifications/${id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } }); if (!r.ok) throw new Error(); setItems(old => old.map(n => n.id === id ? {...n, read:true} : n)); setServerUnreadCount(old => Math.max(0, old - 1)); } catch { setError('Could not mark notification as read. Please try again.'); } };

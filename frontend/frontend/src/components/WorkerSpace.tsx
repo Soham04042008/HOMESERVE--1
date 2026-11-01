@@ -643,7 +643,7 @@ function WorkerMessagesSection({ userId, initialBookingId }: { userId: string; i
       inFlight = true;
       void loadConversations(true).finally(() => { inFlight = false; });
     };
-    const timer = window.setInterval(refresh, 4000);
+    const timer = window.setInterval(refresh, 15000);
     const onVisible = () => refresh();
     document.addEventListener('visibilitychange', onVisible);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
@@ -691,7 +691,7 @@ function WorkerMessagesSection({ userId, initialBookingId }: { userId: string; i
     void load();
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') void load();
-    }, 4000);
+    }, 8000);
     const onVisible = () => { if (document.visibilityState === 'visible') void load(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { active = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };

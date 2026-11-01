@@ -98,38 +98,48 @@ export function useProfessionals(): UseProfessionalsResult {
       const payload: unknown = await response.json();
       if (!Array.isArray(payload)) throw new Error('Worker directory API returned an unexpected response.');
       const directoryWorkers = payload as ApiProfessional[];
-      // Load saved reviews for every database-backed worker in parallel. The backend
-      // review endpoint returns camelCase fields, which mapProfessional normalizes.
-      const databaseWorkers = await Promise.all(directoryWorkers.map(async (worker) => {
-        // Newer backend responses already include batched review data, avoiding one
-        // additional request per professional on every Find Pros page load.
-        if (Array.isArray(worker.review_details)) return mapProfessional(worker);
-        const workerId = worker.user_id ?? String(worker.id ?? '').replace(/^worker-/, '');
-        if (workerId === undefined || workerId === null || String(workerId).trim() === '') return mapProfessional(worker);
+      // Fetch reviews for all workers in one request instead of N requests.
+      const workersNeedingReviews = directoryWorkers.filter((worker) => !Array.isArray(worker.review_details));
+      const workerIds = workersNeedingReviews
+        .map((worker) => worker.user_id ?? String(worker.id ?? '').replace(/^worker-/, ''))
+        .filter((id) => id !== undefined && id !== null && String(id).trim() !== '')
+        .map((id) => String(id));
+      let reviewsByWorker: Record<string, NonNullable<ApiProfessional['review_details']>> = {};
+      if (workerIds.length) {
         try {
-          const reviewResponse = await fetch(`${API_BASE}/api/workers/${encodeURIComponent(String(workerId))}/reviews`, {
+          const params = new URLSearchParams();
+          workerIds.forEach((id) => params.append('workerIds', id));
+          const reviewResponse = await fetch(`${API_BASE}/api/workers/reviews/batch?${params.toString()}`, {
             headers: { Accept: 'application/json' },
           });
-          if (!reviewResponse.ok) return mapProfessional(worker);
-          const reviewPayload: unknown = await reviewResponse.json();
-          const rows = Array.isArray(reviewPayload) ? reviewPayload as NonNullable<ApiProfessional['review_details']> : [];
-          const normalized = rows.map((r) => ({
-            ...r,
-            customer_name: r.customer_name ?? r.customerName,
-            service_name: r.service_name ?? r.serviceName,
-            created_at: r.created_at ?? r.createdAt,
-          }));
-          const ratings = normalized.map((r) => Number(r.rating ?? 0)).filter((n) => n >= 1 && n <= 5);
-          return mapProfessional({
-            ...worker,
-            rating: ratings.length ? ratings.reduce((sum, n) => sum + n, 0) / ratings.length : 0,
-            reviews: normalized.length,
-            review_details: normalized,
-          });
+          if (reviewResponse.ok) {
+            const payload: unknown = await reviewResponse.json();
+            if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+              reviewsByWorker = payload as Record<string, NonNullable<ApiProfessional['review_details']>>;
+            }
+          }
         } catch {
-          return mapProfessional(worker);
+          // Keep directory data usable if the optional review request fails.
         }
-      }));
+      }
+      const databaseWorkers = directoryWorkers.map((worker) => {
+        if (Array.isArray(worker.review_details)) return mapProfessional(worker);
+        const workerId = String(worker.user_id ?? String(worker.id ?? '').replace(/^worker-/, ''));
+        const rows = reviewsByWorker[workerId] || [];
+        const normalized = rows.map((r) => ({
+          ...r,
+          customer_name: r.customer_name ?? r.customerName,
+          service_name: r.service_name ?? r.serviceName,
+          created_at: r.created_at ?? r.createdAt,
+        }));
+        const ratings = normalized.map((r) => Number(r.rating ?? 0)).filter((n) => n >= 1 && n <= 5);
+        return mapProfessional({
+          ...worker,
+          rating: ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : Number(worker.rating ?? 0),
+          reviews: normalized.length || Number(worker.reviews ?? 0),
+          review_details: normalized,
+        });
+      });
       // Show only database-backed workers in the marketplace.
       setProfessionals(databaseWorkers);
       setUsingDemo(false);
